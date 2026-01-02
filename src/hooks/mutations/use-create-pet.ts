@@ -12,6 +12,7 @@ export function useCreatePet() {
   return useMutation({
     mutationKey: createPetMutationKey(),
     mutationFn: async (data: {
+      codigo?: string;
       name: string;
       species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
       breed?: string;

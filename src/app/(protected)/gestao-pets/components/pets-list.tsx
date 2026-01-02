@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Plus, Search, Trash2, AlertCircle } from "lucide-react";
+import { Edit, Plus, Search, Trash2, AlertCircle, MoreVertical, History } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useState } from "react";
 
@@ -18,6 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { usePets } from "@/hooks/queries/use-pets";
 import { useDeletePet } from "@/hooks/mutations/use-delete-pet";
@@ -27,6 +35,7 @@ import { PetFormDialog } from "./pet-form-dialog";
 
 type Pet = {
   id: string;
+  codigo?: string | null;
   name: string;
   species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
   breed?: string | null;
@@ -35,7 +44,6 @@ type Pet = {
   status: "ATIVO" | "SUSPENSO";
   tutorId: string;
   planId?: string | null;
-  qrCode?: string | null;
   createdAt: Date;
 };
 
@@ -194,16 +202,19 @@ export function PetsList() {
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="px-4 py-3 text-left text-sm font-medium">
+                  Carteirinha
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium">
                   Nome
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium">
+                  Tutor
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Espécie
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Raça
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Tutor
                 </th>
                 <th className="px-4 py-3 text-left text-sm font-medium">
                   Status
@@ -221,10 +232,13 @@ export function PetsList() {
                       <Skeleton className="h-4 w-32" />
                     </td>
                     <td className="px-4 py-3">
-                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-32" />
                     </td>
                     <td className="px-4 py-3">
                       <Skeleton className="h-4 w-32" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <Skeleton className="h-4 w-24" />
                     </td>
                     <td className="px-4 py-3">
                       <Skeleton className="h-4 w-32" />
@@ -239,7 +253,7 @@ export function PetsList() {
                 ))
               ) : pets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center">
+                  <td colSpan={7} className="px-4 py-8 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <AlertCircle className="h-8 w-8" />
                       <p>Nenhum pet encontrado</p>
@@ -257,12 +271,15 @@ export function PetsList() {
                     key={pet.id}
                     className="border-b transition-colors hover:bg-muted/50"
                   >
+                    <td className="px-4 py-3 font-mono text-sm">
+                      {pet.codigo || "-"}
+                    </td>
                     <td className="px-4 py-3 font-medium">{pet.name}</td>
-                    <td className="px-4 py-3">{getSpeciesLabel(pet.species)}</td>
-                    <td className="px-4 py-3">{pet.breed || "-"}</td>
                     <td className="px-4 py-3">
                       {tutorsMap.get(pet.tutorId) || "-"}
                     </td>
+                    <td className="px-4 py-3">{getSpeciesLabel(pet.species)}</td>
+                    <td className="px-4 py-3">{pet.breed || "-"}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusBadgeColor(
@@ -273,25 +290,46 @@ export function PetsList() {
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => handleEdit(pet)}
-                          title="Editar pet"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => handleDelete(pet.id)}
-                          disabled={deletePetMutation.isPending}
-                          title="Excluir pet"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="h-8 w-8"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuLabel className="font-normal">
+                            <div className="flex flex-col space-y-1">
+                              <p className="text-sm font-medium leading-none">
+                                {pet.name}
+                              </p>
+                              <p className="text-xs leading-none text-muted-foreground">
+                                {getSpeciesLabel(pet.species)}
+                              </p>
+                            </div>
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleEdit(pet)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => handleDelete(pet.id)}
+                            disabled={deletePetMutation.isPending}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <History className="mr-2 h-4 w-4" />
+                            Histórico
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </td>
                   </tr>
                 ))

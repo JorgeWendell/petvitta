@@ -5,13 +5,16 @@ import { petsTable } from "@/db/schema";
 import { actionClient } from "@/lib/next-safe-action";
 import { eq } from "drizzle-orm";
 
-import { getPetSchema } from "./schema";
+import { getPetByCodeSchema } from "./schema";
 
-export const getPetAction = actionClient
-  .schema(getPetSchema)
+export const getPetByCodeAction = actionClient
+  .schema(getPetByCodeSchema)
   .action(async ({ parsedInput }) => {
     try {
-      const { id } = parsedInput;
+      const { codigo } = parsedInput;
+
+      // Converter código para número para busca
+      const codigoNumber = codigo.trim();
 
       const petRaw = await db
         .select({
@@ -29,7 +32,7 @@ export const getPetAction = actionClient
           updatedAt: petsTable.updatedAt,
         })
         .from(petsTable)
-        .where(eq(petsTable.id, id))
+        .where(eq(petsTable.codigo, codigoNumber))
         .limit(1);
 
       if (petRaw.length === 0) {
@@ -60,7 +63,7 @@ export const getPetAction = actionClient
         pet,
       };
     } catch (error) {
-      console.error("Erro ao buscar pet:", error);
+      console.error("Erro ao buscar pet por código:", error);
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao buscar pet";
       return {
         error: errorMessage,

@@ -12,7 +12,7 @@ export const createPetAction = actionClient
   .schema(createPetSchema)
   .action(async ({ parsedInput }) => {
     try {
-      const { name, species, breed, dateOfBirth, gender, status, tutorId, planId } = parsedInput;
+      const { codigo, name, species, breed, dateOfBirth, gender, status, tutorId, planId } = parsedInput;
 
       // Verificar se o tutor existe
       const tutor = await db
@@ -28,12 +28,15 @@ export const createPetAction = actionClient
       }
 
       const petId = randomUUID();
-      const qrCode = `PET-${petId}`; // QR Code temporário, será gerado pela API Python no futuro
+
+      // Gerar código aleatório de 16 dígitos se não fornecido
+      const codigoToInsert = codigo || Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
 
       const dateOfBirthValue = dateOfBirth ? new Date(dateOfBirth) : null;
 
       await db.insert(petsTable).values({
         id: petId,
+        codigo: codigoToInsert,
         name,
         species,
         breed: breed || null,
@@ -42,20 +45,55 @@ export const createPetAction = actionClient
         status,
         tutorId,
         planId: planId || null,
-        qrCode,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      const createdPet = await db
-        .select()
+      const createdPetRaw = await db
+        .select({
+          id: petsTable.id,
+          codigo: petsTable.codigo,
+          name: petsTable.name,
+          species: petsTable.species,
+          breed: petsTable.breed,
+          dateOfBirth: petsTable.dateOfBirth,
+          gender: petsTable.gender,
+          status: petsTable.status,
+          tutorId: petsTable.tutorId,
+          planId: petsTable.planId,
+          createdAt: petsTable.createdAt,
+          updatedAt: petsTable.updatedAt,
+        })
         .from(petsTable)
         .where(eq(petsTable.id, petId))
         .limit(1);
 
+      if (createdPetRaw.length === 0) {
+        return {
+          error: "Erro ao recuperar pet criado",
+        };
+      }
+
+      // Converter codigo para string se necessário
+      let codigoValue: string | null = null;
+      const codigoField = createdPetRaw[0].codigo;
+      if (codigoField != null && codigoField !== undefined) {
+        // O campo numeric pode vir como objeto ou string
+        if (typeof codigoField === 'object' && codigoField !== null) {
+          // Se for um objeto (como Decimal do Drizzle), pegar o valor
+          codigoValue = (codigoField as any).toString ? (codigoField as any).toString() : String(codigoField);
+        } else {
+          codigoValue = String(codigoField);
+        }
+      }
+      const createdPet = {
+        ...createdPetRaw[0],
+        codigo: codigoValue,
+      };
+
       return {
         success: true,
-        pet: createdPet[0],
+        pet: createdPet,
       };
     } catch (error) {
       console.error("Erro ao criar pet:", error);

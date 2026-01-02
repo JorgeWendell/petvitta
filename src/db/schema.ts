@@ -102,6 +102,7 @@ export const plansTable = pgTable("plans", {
 
 export const petsTable = pgTable("pets", {
   id: text("id").primaryKey(),
+  codigo: numeric("codigo", { precision: 16, scale: 0 }).unique(),
   name: text("name").notNull(),
   species: petSpeciesEnum("species").notNull().default("CÃO"),
   breed: text("breed"),
@@ -114,7 +115,7 @@ export const petsTable = pgTable("pets", {
   planId: text("plan_id").references(() => plansTable.id, {
     onDelete: "set null",
   }),
-  qrCode: text("qr_code").unique(),
+
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
@@ -146,10 +147,38 @@ export const clinicsTable = pgTable("clinics", {
   updatedAt: timestamp("updated_at").notNull(),
 });
 
-export const clinicsRelations = relations(clinicsTable, ({ one }) => ({
+export const doctorsTable = pgTable("doctors", {
+  id: text("id").primaryKey(),
+  clinicId: text("clinic_id")
+    .notNull()
+    .references(() => clinicsTable.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  availableFromWeekDay: integer("available_from_week_day").notNull(), // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
+  availableToWeekDay: integer("available_to_week_day").notNull(), // 0 = Sunday, 1 = Monday, 2 = Tuesday, 3 = Wednesday, 4 = Thursday, 5 = Friday, 6 = Saturday
+  availableFromTime: time("available_from_time").notNull(),
+  availableToTime: time("available_to_time").notNull(),
+  avatarImageUrl: text("avatar_image_url"),
+  appointmentPriceInCents: integer("appointment_price_in_cents").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const clinicsRelations = relations(clinicsTable, ({ one, many }) => ({
   user: one(usersTable, {
     fields: [clinicsTable.userId],
     references: [usersTable.id],
+  }),
+  doctors: many(doctorsTable),
+}));
+
+export const doctorsRelations = relations(doctorsTable, ({ one }) => ({
+  clinic: one(clinicsTable, {
+    fields: [doctorsTable.clinicId],
+    references: [clinicsTable.id],
   }),
 }));
 

@@ -28,8 +28,14 @@ import { Input } from "@/components/ui/input";
 import { useCreatePet } from "@/hooks/mutations/use-create-pet";
 import { useUpdatePet } from "@/hooks/mutations/use-update-pet";
 import { useUsers } from "@/hooks/queries/use-users";
+import { usePlans } from "@/hooks/queries/use-plans";
 
 const petFormSchema = z.object({
+  codigo: z
+    .string()
+    .length(16, { message: "Código deve ter exatamente 16 dígitos" })
+    .regex(/^\d+$/, { message: "Código deve conter apenas números" })
+    .optional(),
   name: z
     .string()
     .min(1, { message: "Nome é obrigatório" })
@@ -51,6 +57,7 @@ type PetFormData = z.infer<typeof petFormSchema>;
 
 type Pet = {
   id: string;
+  codigo?: string | null;
   name: string;
   species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
   breed?: string | null;
@@ -83,9 +90,19 @@ export function PetFormDialog({
   const { data: tutorsData } = useUsers({ role: "TUTOR", limit: 100 });
   const tutors = tutorsData?.users || [];
 
+  // Buscar planos para o select
+  const { data: plansData } = usePlans({ status: "ATIVO", limit: 100 });
+  const plans = plansData?.plans || [];
+
+  // Função para gerar código aleatório de 16 dígitos
+  const generateRandomCode = () => {
+    return Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
+  };
+
   const form = useForm<PetFormData>({
     resolver: zodResolver(petFormSchema),
     defaultValues: {
+      codigo: "",
       name: "",
       species: "CÃO",
       breed: "",
@@ -100,6 +117,7 @@ export function PetFormDialog({
   useEffect(() => {
     if (pet && open) {
       form.reset({
+        codigo: pet.codigo || "",
         name: pet.name,
         species: pet.species,
         breed: pet.breed || "",
@@ -112,7 +130,10 @@ export function PetFormDialog({
         planId: pet.planId || "",
       });
     } else if (open) {
+      // Gerar código aleatório para novo pet
+      const randomCode = generateRandomCode();
       form.reset({
+        codigo: randomCode,
         name: "",
         species: "CÃO",
         breed: "",
@@ -130,14 +151,15 @@ export function PetFormDialog({
       updatePetMutation.mutate(
         {
           id: pet.id,
+          codigo: values.codigo || undefined,
           name: values.name,
           species: values.species,
-          breed: values.breed,
-          dateOfBirth: values.dateOfBirth,
-          gender: values.gender,
+          breed: values.breed || undefined,
+          dateOfBirth: values.dateOfBirth || undefined,
+          gender: values.gender || undefined,
           status: values.status,
           tutorId: values.tutorId,
-          planId: values.planId,
+          planId: values.planId || undefined,
         },
         {
           onSuccess: () => {
@@ -149,14 +171,15 @@ export function PetFormDialog({
     } else {
       createPetMutation.mutate(
         {
+          codigo: values.codigo || generateRandomCode(),
           name: values.name,
           species: values.species,
-          breed: values.breed,
-          dateOfBirth: values.dateOfBirth,
-          gender: values.gender,
+          breed: values.breed || undefined,
+          dateOfBirth: values.dateOfBirth || undefined,
+          gender: values.gender || undefined,
           status: values.status,
           tutorId: values.tutorId,
-          planId: values.planId,
+          planId: values.planId || undefined,
         },
         {
           onSuccess: () => {
@@ -185,6 +208,57 @@ export function PetFormDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FieldGroup>
+              <Field>
+                <FormField
+                  control={form.control}
+                  name="codigo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Carteirinha</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="Código de 16 dígitos"
+                          disabled={true}
+                          maxLength={16}
+                          readOnly={true}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </Field>
+
+              <Field>
+                <FormField
+                  control={form.control}
+                  name="planId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Plano</FormLabel>
+                      <FormControl>
+                        <select
+                          {...field}
+                          value={field.value || ""}
+                          disabled={isLoading}
+                          className="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:opacity-50"
+                        >
+                          <option value="">Selecione um plano</option>
+                          {plans.map((plan) => (
+                            <option key={plan.id} value={plan.id}>
+                              {plan.name} - R$ {Number(plan.price).toFixed(2)}
+                            </option>
+                          ))}
+                        </select>
+                      </FormControl>
+                      <FieldDescription>Opcional</FieldDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </Field>
+
               <Field>
                 <FormField
                   control={form.control}

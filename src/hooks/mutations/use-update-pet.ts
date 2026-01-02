@@ -14,6 +14,7 @@ export function useUpdatePet() {
     mutationKey: updatePetMutationKey(),
     mutationFn: async (data: {
       id: string;
+      codigo?: string;
       name: string;
       species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
       breed?: string;
