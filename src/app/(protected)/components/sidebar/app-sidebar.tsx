@@ -2,12 +2,16 @@
 
 import {
   CalendarDays,
+  CreditCard,
+  FileText,
   LayoutDashboard,
   LogOut,
   Moon,
   PawPrint,
   Stethoscope,
   Sun,
+  Users,
+  Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -49,19 +53,35 @@ const data = {
           icon: LayoutDashboard,
         },
         {
-          title: "Agendamentos",
-          url: "/agendamentos",
-          icon: CalendarDays,
+          title: "Gestão de Usuários",
+          url: "/gestao-usuarios",
+          icon: Users,
         },
+
         {
-          title: "Médicos",
-          icon: Stethoscope,
-          url: "/doctors",
-        },
-        {
-          title: "Pets",
+          title: "Gestão de Pets",
           icon: PawPrint,
-          url: "/pets",
+          url: "/gestao-pets",
+        },
+        {
+          title: "Gestão de Planos",
+          icon: CreditCard,
+          url: "/gestao-planos",
+        },
+        {
+          title: "Gestão de Clínicas",
+          icon: Stethoscope,
+          url: "/gestao-clinicas",
+        },
+        {
+          title: "Gestão Financeira",
+          icon: Wallet,
+          url: "/gestao-financeiro",
+        },
+        {
+          title: "Relatórios",
+          icon: FileText,
+          url: "/gestao-relatorios",
         },
       ],
     },
@@ -128,13 +148,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <DropdownMenuItem onClick={toggleTheme}>
                   {mounted && theme === "dark" ? (
                     <>
-                      <Sun />
-                      Dark Mode
+                      <Sun className="mr-2 h-4 w-4" />
+                      Modo Claro
                     </>
                   ) : (
                     <>
-                      <Moon />
-                      Dark Mode
+                      <Moon className="mr-2 h-4 w-4" />
+                      Modo Escuro
                     </>
                   )}
                 </DropdownMenuItem>

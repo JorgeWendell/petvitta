@@ -9,7 +9,7 @@ const ProtectedLayout = ({ children }: { children: React.ReactNode }) => {
        <main className="w-full">
          <SidebarTrigger />
          {children}
-         <Toaster position="bottom-center" richColors theme="light" />
+         <Toaster position="bottom-center" richColors />
        </main>
      </SidebarProvider>
    );
