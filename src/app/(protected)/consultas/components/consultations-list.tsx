@@ -1,14 +1,14 @@
 "use client";
 
-import { Edit, Plus, Search, Trash2, AlertCircle, MoreVertical } from "lucide-react";
+import { Search, AlertCircle, MoreVertical, Clock, User, CheckCircle } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldContent, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,54 +16,80 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
-import { ConsultationFormDialog } from "./consultation-form-dialog";
+import { useTodayAppointments } from "@/hooks/queries/use-today-appointments";
+import { useUpdateAppointmentStatus } from "@/hooks/mutations/use-update-appointment-status";
 
 interface ConsultationsListProps {
   clinicId: string;
 }
 
 export function ConsultationsList({ clinicId }: ConsultationsListProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const debouncedSearch = useDebounce(search, 500);
 
-  // TODO: Implementar hook de consultas quando estiver disponível
-  // const { data, isLoading, error, isError } = useConsultations({
-  //   clinicId,
-  //   page,
-  //   limit: 10,
-  //   search: debouncedSearch || undefined,
-  // });
+  const { data, isLoading, error, isError } = useTodayAppointments({
+    clinicId,
+    page,
+    limit: 10,
+    search: debouncedSearch || undefined,
+  });
 
-  const isLoading = false;
-  const isError = false;
-  const error = null;
-  const consultations: any[] = [];
-  const totalPages = 1;
+  const updateStatusMutation = useUpdateAppointmentStatus();
 
-  const handleCreate = () => {
-    setIsDialogOpen(true);
+  const appointments = data?.appointments || [];
+  const totalPages = data?.pagination?.totalPages || 1;
+
+  const handleViewPet = (codigo: string) => {
+    router.push(`/consultas/${codigo}`);
   };
 
-  const handleDelete = (id: string) => {
-    setIsDeleteDialogOpen(true);
+  const handleFinishAppointment = (appointmentId: string) => {
+    updateStatusMutation.mutate({
+      appointmentId,
+      status: "CONCLUIDO",
+    });
   };
 
-  const handleEdit = (consultation: any) => {
-    setIsDialogOpen(true);
+  // Formatar hora para exibição
+  const formatTime = (timeString: string) => {
+    return timeString.substring(0, 5); // HH:MM
+  };
+
+  // Formatar valor para exibição
+  const formatPrice = (priceInCents: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(priceInCents / 100);
+  };
+
+  // Formatar status para exibição
+  const getStatusLabel = (status: string | null | undefined) => {
+    if (!status) return "Agendado";
+    if (status === "CONCLUIDO") return "Concluído";
+    if (status === "ATRASADO") return "Atrasado";
+    return "Agendado";
+  };
+
+  const getStatusBadgeClass = (status: string | null | undefined) => {
+    if (status === "CONCLUIDO") {
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    }
+    if (status === "ATRASADO") {
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    }
+    return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
   };
 
   return (
@@ -89,10 +115,6 @@ export function ConsultationsList({ clinicId }: ConsultationsListProps) {
             </Field>
           </FieldGroup>
         </div>
-        <Button onClick={handleCreate}>
-          <Plus className="h-4 w-4" />
-          Nova Consulta
-        </Button>
       </div>
 
       {isError && (
@@ -106,145 +128,162 @@ export function ConsultationsList({ clinicId }: ConsultationsListProps) {
         </div>
       )}
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <Skeleton className="h-16 w-16 rounded-full" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                    <Skeleton className="h-3 w-20" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : consultations.length === 0 ? (
-        <div className="rounded-lg border p-8 text-center">
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <AlertCircle className="h-8 w-8" />
-            <p>Nenhuma consulta encontrada</p>
-            {search && (
-              <p className="text-xs">
-                Tente ajustar os filtros de busca
-              </p>
-            )}
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {consultations.map((consultation) => (
-              <Card key={consultation.id} className="relative">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg truncate">
-                          {/* TODO: Adicionar conteúdo da consulta */}
-                          Consulta #{consultation.id}
-                        </h3>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {/* TODO: Adicionar informações da consulta */}
-                        </div>
-                      </div>
+      <div className="rounded-lg border">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Carteirinha</TableHead>
+                <TableHead>Nome Pet</TableHead>
+                <TableHead>Plano Pet</TableHead>
+                <TableHead>Hora</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" />
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : appointments.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="h-24 text-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <AlertCircle className="h-8 w-8" />
+                      <p>Nenhuma consulta encontrada para hoje</p>
+                      {search && (
+                        <p className="text-xs">
+                          Tente ajustar os filtros de busca
+                        </p>
+                      )}
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="h-8 w-8 shrink-0"
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => handleEdit(consultation)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(consultation.id)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                appointments.map((appointment) => (
+                  <TableRow
+                    key={appointment.id}
+                    className="transition-colors hover:bg-muted/50"
+                  >
+                    <TableCell className="font-mono text-sm">
+                      {appointment.petCodigo || "-"}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {appointment.petName}
+                    </TableCell>
+                    <TableCell>
+                      {appointment.planName || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        {formatTime(appointment.appointmentTime)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {formatPrice(appointment.priceInCents)}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-sm font-medium ${getStatusBadgeClass(
+                          appointment.status
+                        )}`}
+                      >
+                        {getStatusLabel(appointment.status)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="h-8 w-8 shrink-0"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem disabled>
+                            {appointment.petName}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleViewPet(appointment.petCodigo || "")}
+                          >
+                            <User className="mr-2 h-4 w-4" />
+                            Ver Pet
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleFinishAppointment(appointment.id)}
+                            disabled={
+                              appointment.status === "CONCLUIDO" ||
+                              updateStatusMutation.isPending
+                            }
+                          >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Finalizar atendimento
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4">
+          <div className="text-sm text-muted-foreground">
+            Página {page} de {totalPages} ({data?.pagination?.total || 0}{" "}
+            consultas)
           </div>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4">
-              <div className="text-sm text-muted-foreground">
-                Página {page} de {totalPages} ({consultations.length}{" "}
-                consultas)
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1 || isLoading}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages || isLoading}
-                >
-                  Próxima
-                </Button>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      <ConsultationFormDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        clinicId={clinicId}
-        onSuccess={() => setIsDialogOpen(false)}
-      />
-
-      <AlertDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir esta consulta? Esta ação não
-              pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => setIsDeleteDialogOpen(false)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1 || isLoading}
             >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages || isLoading}
+            >
+              Próxima
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

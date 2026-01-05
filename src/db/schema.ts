@@ -37,6 +37,16 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "EXPIRADA",
 ]);
 
+export const appointmentStatusEnum = pgEnum("appointment_status", [
+  "AGENDADO",
+  "CONCLUIDO",
+  "ATRASADO",
+]);
+
+export const mucosaEnum = pgEnum("mucosa", ["NORMAL", "PALIDA", "ICTERICA"]);
+
+export const hydrationEnum = pgEnum("hydration", ["NORMAL", "DESIDRATADO"]);
+
 export const usersTable = pgTable("users", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -175,13 +185,6 @@ export const clinicsRelations = relations(clinicsTable, ({ one, many }) => ({
   doctors: many(doctorsTable),
 }));
 
-export const doctorsRelations = relations(doctorsTable, ({ one }) => ({
-  clinic: one(clinicsTable, {
-    fields: [doctorsTable.clinicId],
-    references: [clinicsTable.id],
-  }),
-}));
-
 export const subscriptionsTable = pgTable("subscriptions", {
   id: text("id").primaryKey(),
   petId: text("pet_id")
@@ -213,6 +216,39 @@ export const subscriptionsRelations = relations(
   }),
 );
 
+export const appointmentsTable = pgTable("appointments", {
+  id: text("id").primaryKey(),
+  petId: text("pet_id")
+    .notNull()
+    .references(() => petsTable.id, { onDelete: "cascade" }),
+  doctorId: text("doctor_id")
+    .notNull()
+    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+  appointmentDate: date("appointment_date").notNull(),
+  appointmentTime: time("appointment_time").notNull(),
+  priceInCents: integer("price_in_cents").notNull(),
+  status: appointmentStatusEnum("status").notNull().default("AGENDADO"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const appointmentsRelations = relations(
+  appointmentsTable,
+  ({ one }) => ({
+    pet: one(petsTable, {
+      fields: [appointmentsTable.petId],
+      references: [petsTable.id],
+    }),
+    doctor: one(doctorsTable, {
+      fields: [appointmentsTable.doctorId],
+      references: [doctorsTable.id],
+    }),
+  }),
+);
+
 export const petsRelations = relations(petsTable, ({ one, many }) => ({
   tutor: one(usersTable, {
     fields: [petsTable.tutorId],
@@ -223,9 +259,159 @@ export const petsRelations = relations(petsTable, ({ one, many }) => ({
     references: [plansTable.id],
   }),
   subscriptions: many(subscriptionsTable),
+  appointments: many(appointmentsTable),
+  medicalRecords: many(medicalRecordsTable),
+  petVaccines: many(petVaccinesTable),
+}));
+
+export const doctorsRelations = relations(doctorsTable, ({ one, many }) => ({
+  clinic: one(clinicsTable, {
+    fields: [doctorsTable.clinicId],
+    references: [clinicsTable.id],
+  }),
+  appointments: many(appointmentsTable),
+  medicalRecords: many(medicalRecordsTable),
 }));
 
 export const plansRelations = relations(plansTable, ({ many }) => ({
   pets: many(petsTable),
   subscriptions: many(subscriptionsTable),
+}));
+
+export const medicalRecordsTable = pgTable("medical_records", {
+  id: text("id").primaryKey(),
+  petId: text("pet_id")
+    .notNull()
+    .references(() => petsTable.id, { onDelete: "cascade" }),
+  doctorId: text("doctor_id")
+    .notNull()
+    .references(() => doctorsTable.id, { onDelete: "cascade" }),
+  // Anamnese
+  chiefComplaint: text("chief_complaint"), // Queixa principal
+  reportedSymptoms: text("reported_symptoms"), // Sintomas relatados
+  medicationUse: text("medication_use"), // Uso de medicamentos
+  temperature: numeric("temperature", { precision: 4, scale: 1 }), // Temperatura em ºC
+  heartRate: integer("heart_rate"), // Frequência cardíaca em bpm
+  respiratoryRate: integer("respiratory_rate"), // Frequência respiratória em irpm
+  mucosa: mucosaEnum("mucosa"), // Mucosas (normais, pálidas, Ictéricas)
+  hydration: hydrationEnum("hydration"), // Hidratação (normal, desidratado)
+  // Diagnóstico
+  clinicalDiagnosis: text("clinical_diagnosis"), // Diagnóstico clínico
+  isReturn: boolean("is_return").notNull().default(false), // Retorno
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const prescriptionsTable = pgTable("prescriptions", {
+  id: text("id").primaryKey(),
+  medicalRecordId: text("medical_record_id")
+    .notNull()
+    .references(() => medicalRecordsTable.id, { onDelete: "cascade" }),
+  medication: text("medication").notNull(), // Medicamento
+  dosage: text("dosage").notNull(), // Dosagem
+  frequency: text("frequency").notNull(), // Frequência
+  duration: text("duration").notNull(), // Duração
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const examsTable = pgTable("exams", {
+  id: text("id").primaryKey(),
+  medicalRecordId: text("medical_record_id")
+    .notNull()
+    .references(() => medicalRecordsTable.id, { onDelete: "cascade" }),
+  examName: text("exam_name").notNull(), // Nome do exame
+  result: text("result"), // Resultado
+  examDate: date("exam_date"), // Data
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const vaccinesTable = pgTable("vaccines", {
+  id: text("id").primaryKey(),
+  medicalRecordId: text("medical_record_id")
+    .notNull()
+    .references(() => medicalRecordsTable.id, { onDelete: "cascade" }),
+  vaccineName: text("vaccine_name").notNull(), // Nome
+  dose: text("dose").notNull(), // Dose
+  vaccineDate: date("vaccine_date").notNull(), // Data
+  nextDoseDate: date("next_dose_date"), // Próxima dose (data)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const petVaccinesTable = pgTable("pet_vaccines", {
+  id: text("id").primaryKey(),
+  petId: text("pet_id")
+    .notNull()
+    .references(() => petsTable.id, { onDelete: "cascade" }),
+  vaccineName: text("vaccine_name").notNull(), // Nome
+  dose: text("dose").notNull(), // Dose
+  vaccineDate: date("vaccine_date").notNull(), // Data
+  nextDoseDate: date("next_dose_date"), // Próxima dose (data)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const medicalRecordsRelations = relations(
+  medicalRecordsTable,
+  ({ one, many }) => ({
+    pet: one(petsTable, {
+      fields: [medicalRecordsTable.petId],
+      references: [petsTable.id],
+    }),
+    doctor: one(doctorsTable, {
+      fields: [medicalRecordsTable.doctorId],
+      references: [doctorsTable.id],
+    }),
+    prescriptions: many(prescriptionsTable),
+    exams: many(examsTable),
+    vaccines: many(vaccinesTable),
+  }),
+);
+
+export const prescriptionsRelations = relations(
+  prescriptionsTable,
+  ({ one }) => ({
+    medicalRecord: one(medicalRecordsTable, {
+      fields: [prescriptionsTable.medicalRecordId],
+      references: [medicalRecordsTable.id],
+    }),
+  }),
+);
+
+export const examsRelations = relations(examsTable, ({ one }) => ({
+  medicalRecord: one(medicalRecordsTable, {
+    fields: [examsTable.medicalRecordId],
+    references: [medicalRecordsTable.id],
+  }),
+}));
+
+export const vaccinesRelations = relations(vaccinesTable, ({ one }) => ({
+  medicalRecord: one(medicalRecordsTable, {
+    fields: [vaccinesTable.medicalRecordId],
+    references: [medicalRecordsTable.id],
+  }),
+}));
+
+export const petVaccinesRelations = relations(petVaccinesTable, ({ one }) => ({
+  pet: one(petsTable, {
+    fields: [petVaccinesTable.petId],
+    references: [petsTable.id],
+  }),
 }));

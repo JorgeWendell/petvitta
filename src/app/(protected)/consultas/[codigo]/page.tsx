@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle, FileText, Syringe, Hospital } from "lucide-react";
 import { ClinicGuard } from "../components/clinic-guard";
@@ -8,6 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePetByCode } from "@/hooks/queries/use-pet-by-code";
 import { usePlan } from "@/hooks/queries/use-plan";
+import { useCurrentUserClinic } from "@/hooks/queries/use-current-user-clinic";
+import { MedicalRecordDialog } from "../components/medical-record-dialog";
+import { VaccineDialog } from "../components/vaccine-dialog";
+import { MedicalRecordsHistory } from "../components/medical-records-history";
 
 const getSpeciesLabel = (species: string) => {
   const labels = {
@@ -36,10 +41,12 @@ export default function ConsultaByCodePage() {
   const params = useParams();
   const router = useRouter();
   const codigo = params.codigo as string;
+  const [isMedicalRecordOpen, setIsMedicalRecordOpen] = useState(false);
+  const [isVaccineOpen, setIsVaccineOpen] = useState(false);
 
   const { data: pet, isLoading, error } = usePetByCode(codigo);
-  
   const { data: plan, isLoading: isLoadingPlan } = usePlan(pet?.planId || "");
+  const { data: clinicData } = useCurrentUserClinic();
 
   if (isLoading) {
     return (
@@ -172,10 +179,7 @@ export default function ConsultaByCodePage() {
             variant="outline"
             size="lg"
             className="flex-1 min-w-[200px]"
-            onClick={() => {
-              // TODO: Implementar navegação para Prontuário
-              console.log("Prontuário do pet:", pet.id);
-            }}
+            onClick={() => setIsMedicalRecordOpen(true)}
           >
             <FileText className="h-5 w-5 mr-2" />
             Prontuário
@@ -184,10 +188,7 @@ export default function ConsultaByCodePage() {
             variant="outline"
             size="lg"
             className="flex-1 min-w-[200px]"
-            onClick={() => {
-              // TODO: Implementar navegação para Vacinas
-              console.log("Vacinas do pet:", pet.id);
-            }}
+            onClick={() => setIsVaccineOpen(true)}
           >
             <Syringe className="h-5 w-5 mr-2" />
             Vacinas
@@ -205,6 +206,26 @@ export default function ConsultaByCodePage() {
             Internações
           </Button>
         </div>
+
+        {pet && <MedicalRecordsHistory petId={pet.id} />}
+
+        {pet && clinicData?.clinic && (
+          <>
+            <MedicalRecordDialog
+              open={isMedicalRecordOpen}
+              onOpenChange={setIsMedicalRecordOpen}
+              petId={pet.id}
+              petName={pet.name}
+              clinicId={clinicData.clinic.id}
+            />
+            <VaccineDialog
+              open={isVaccineOpen}
+              onOpenChange={setIsVaccineOpen}
+              petId={pet.id}
+              petName={pet.name}
+            />
+          </>
+        )}
       </div>
     </ClinicGuard>
   );
