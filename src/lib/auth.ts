@@ -41,12 +41,12 @@ export const auth = betterAuth({
   },
   trustedOrigins: [
     "http://localhost:3000",
-    "https://petvitta.adelbr.tech:5200",
-    "http://192.168.15.59:3000",
+    "https://petvitta.adelbr.tech:6200",
+    "http://192.168.15.63:3000",
     "http://192.168.15.12:3000",
   ],
   baseURL:
     process.env.NODE_ENV === "production"
-      ? "https://petvitta.adelbr.tech:5200"
-      : "http://192.168.15.59:3000",
+      ? "https://petvitta.adelbr.tech:6200"
+      : "http://192.168.15.63:3000",
 });

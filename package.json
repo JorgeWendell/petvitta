@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev --port 5200",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 6200",
     "lint": "eslint",
     "deploy": "git pull && npm install && npx drizzle-kit push && npm run build && pm2 restart petvitta"
   },
