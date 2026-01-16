@@ -42,13 +42,11 @@ const petFormSchema = z.object({
     .min(2, { message: "Nome deve ter pelo menos 2 caracteres" })
     .max(100, { message: "Nome deve ter no máximo 100 caracteres" })
     .trim(),
-  species: z.enum(["CÃO", "GATO", "PASSARO", "COELHO", "HAMSTER", "OUTRO"], {
-    required_error: "Espécie é obrigatória",
-  }),
+  species: z.enum(["CÃO", "GATO", "PASSARO", "COELHO", "HAMSTER", "OUTRO"]),
   breed: z.string().max(100, { message: "Raça deve ter no máximo 100 caracteres" }).trim().optional(),
   dateOfBirth: z.string().optional(),
   gender: z.enum(["MACHO", "FÊMEA"]).optional(),
-  status: z.enum(["ATIVO", "SUSPENSO"]).default("ATIVO"),
+  status: z.enum(["ATIVO", "SUSPENSO"]),
   tutorId: z.string().min(1, { message: "Tutor é obrigatório" }),
   planId: z.string().optional(),
 });
@@ -61,7 +59,7 @@ type Pet = {
   name: string;
   species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
   breed?: string | null;
-  dateOfBirth?: Date | null;
+  dateOfBirth?: string | null;
   gender?: "MACHO" | "FÊMEA" | null;
   status: "ATIVO" | "SUSPENSO";
   tutorId: string;
@@ -121,9 +119,7 @@ export function PetFormDialog({
         name: pet.name,
         species: pet.species,
         breed: pet.breed || "",
-        dateOfBirth: pet.dateOfBirth
-          ? new Date(pet.dateOfBirth).toISOString().split("T")[0]
-          : "",
+        dateOfBirth: pet.dateOfBirth || "",
         gender: pet.gender || undefined,
         status: pet.status,
         tutorId: pet.tutorId,

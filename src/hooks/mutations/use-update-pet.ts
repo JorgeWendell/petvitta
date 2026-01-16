@@ -32,7 +32,8 @@ export function useUpdatePet() {
 
       if (result?.validationErrors) {
         const errors = Object.values(result.validationErrors).flat();
-        throw new Error(errors[0] || "Erro de validação");
+        const errorMessage = typeof errors[0] === 'string' ? errors[0] : "Erro de validação";
+        throw new Error(errorMessage);
       }
 
       if (!result?.data) {

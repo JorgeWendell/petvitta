@@ -71,6 +71,8 @@ export async function GET(request: NextRequest) {
     // Calcular início e fim do mês selecionado
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    const startDateString = startDate.toISOString().split('T')[0];
+    const endDateString = endDate.toISOString().split('T')[0];
 
     // Calcular início e fim do mês anterior
     const previousMonth = month === 1 ? 12 : month - 1;
@@ -85,6 +87,8 @@ export async function GET(request: NextRequest) {
       59,
       999
     );
+    const previousStartDateString = previousStartDate.toISOString().split('T')[0];
+    const previousEndDateString = previousEndDate.toISOString().split('T')[0];
 
     // Contar consultas (medical records) do mês atual
     const consultas = await db
@@ -120,8 +124,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(appointmentsTable.appointmentDate, startDate),
-          lte(appointmentsTable.appointmentDate, endDate)
+          gte(appointmentsTable.appointmentDate, startDateString),
+          lte(appointmentsTable.appointmentDate, endDateString)
         )
       );
 
@@ -133,8 +137,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(appointmentsTable.appointmentDate, previousStartDate),
-          lte(appointmentsTable.appointmentDate, previousEndDate)
+          gte(appointmentsTable.appointmentDate, previousStartDateString),
+          lte(appointmentsTable.appointmentDate, previousEndDateString)
         )
       );
 
@@ -148,8 +152,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(appointmentsTable.appointmentDate, startDate),
-          lte(appointmentsTable.appointmentDate, endDate)
+          gte(appointmentsTable.appointmentDate, startDateString),
+          lte(appointmentsTable.appointmentDate, endDateString)
         )
       );
 
@@ -163,8 +167,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(appointmentsTable.appointmentDate, previousStartDate),
-          lte(appointmentsTable.appointmentDate, previousEndDate)
+          gte(appointmentsTable.appointmentDate, previousStartDateString),
+          lte(appointmentsTable.appointmentDate, previousEndDateString)
         )
       );
 
@@ -180,8 +184,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(vaccinesTable.vaccineDate, startDate),
-          lte(vaccinesTable.vaccineDate, endDate)
+          gte(vaccinesTable.vaccineDate, startDateString),
+          lte(vaccinesTable.vaccineDate, endDateString)
         )
       );
 
@@ -197,8 +201,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(petVaccinesTable.vaccineDate, startDate),
-          lte(petVaccinesTable.vaccineDate, endDate)
+          gte(petVaccinesTable.vaccineDate, startDateString),
+          lte(petVaccinesTable.vaccineDate, endDateString)
         )
       );
 
@@ -214,8 +218,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(vaccinesTable.vaccineDate, previousStartDate),
-          lte(vaccinesTable.vaccineDate, previousEndDate)
+          gte(vaccinesTable.vaccineDate, previousStartDateString),
+          lte(vaccinesTable.vaccineDate, previousEndDateString)
         )
       );
 
@@ -231,8 +235,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(petVaccinesTable.vaccineDate, previousStartDate),
-          lte(petVaccinesTable.vaccineDate, previousEndDate)
+          gte(petVaccinesTable.vaccineDate, previousStartDateString),
+          lte(petVaccinesTable.vaccineDate, previousEndDateString)
         )
       );
 
@@ -271,6 +275,7 @@ export async function GET(request: NextRequest) {
 
     // Calcular faturamento histórico (últimos 3 meses para o gráfico)
     const threeMonthsAgo = new Date(year, month - 3, 1);
+    const threeMonthsAgoString = threeMonthsAgo.toISOString().split('T')[0];
     const faturamentoHistorico = await db
       .select({
         date: sql<string>`TO_CHAR(${appointmentsTable.appointmentDate}, 'DD/MM')`,
@@ -281,8 +286,8 @@ export async function GET(request: NextRequest) {
       .where(
         and(
           eq(doctorsTable.clinicId, clinicId),
-          gte(appointmentsTable.appointmentDate, threeMonthsAgo),
-          lte(appointmentsTable.appointmentDate, endDate)
+          gte(appointmentsTable.appointmentDate, threeMonthsAgoString),
+          lte(appointmentsTable.appointmentDate, endDateString)
         )
       )
       .groupBy(sql`TO_CHAR(${appointmentsTable.appointmentDate}, 'DD/MM')`)

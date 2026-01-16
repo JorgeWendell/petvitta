@@ -8,9 +8,7 @@ export const updatePetSchema = z.object({
     .regex(/^\d+$/, { message: "Código deve conter apenas números" })
     .optional(),
   name: z.string().min(1, { message: "Nome é obrigatório" }).trim(),
-  species: z.enum(["CÃO", "GATO", "PASSARO", "COELHO", "HAMSTER", "OUTRO"], {
-    required_error: "Espécie é obrigatória",
-  }),
+  species: z.enum(["CÃO", "GATO", "PASSARO", "COELHO", "HAMSTER", "OUTRO"]),
   breed: z.string().optional(),
   dateOfBirth: z.string().optional(),
   gender: z.enum(["MACHO", "FÊMEA"]).optional(),

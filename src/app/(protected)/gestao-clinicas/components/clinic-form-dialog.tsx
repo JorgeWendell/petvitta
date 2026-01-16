@@ -49,7 +49,7 @@ const clinicFormSchema = z.object({
   state: z.string().optional(),
   zipCode: z.string().optional(),
   userId: z.string().min(1, { message: "Usuário é obrigatório" }),
-  status: z.enum(["ATIVO", "INATIVO"]).default("ATIVO"),
+  status: z.enum(["ATIVO", "INATIVO"]),
 });
 
 type ClinicFormData = z.infer<typeof clinicFormSchema>;
@@ -497,7 +497,7 @@ export function ClinicFormDialog({
                                 field.onChange(masked);
                               }}
                               onKeyDown={(e) => {
-                                if (e.key === "Enter") {
+                                if (e.key === "Enter" && field.value) {
                                   e.preventDefault();
                                   const cleanCEP = field.value.replace(/\D/g, "");
                                   if (cleanCEP.length === 8) {

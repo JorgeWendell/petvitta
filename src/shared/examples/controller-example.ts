@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from "@nestjs/common";
 import { AuthGuard, RolesGuard, Roles, CurrentUser, Public } from "../index";
-import { CurrentUserData } from "../decorators/current-user.decorator";
+import type { CurrentUserData } from "../decorators/current-user.decorator";
 
 @Controller("example")
 @UseGuards(AuthGuard, RolesGuard)

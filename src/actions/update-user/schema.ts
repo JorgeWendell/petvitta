@@ -8,9 +8,7 @@ export const updateUserSchema = z.object({
     .email({ message: "E-mail inválido" })
     .min(1, { message: "E-mail é obrigatório" })
     .trim(),
-  role: z.enum(["ADMIN", "CLINIC", "TUTOR"], {
-    required_error: "Papel é obrigatório",
-  }),
+  role: z.enum(["ADMIN", "CLINIC", "TUTOR"]),
   isActive: z.boolean(),
 });
 

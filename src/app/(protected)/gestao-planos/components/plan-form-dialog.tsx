@@ -47,7 +47,7 @@ const planFormSchema = z.object({
     .number()
     .min(0, { message: "Carência deve ser um número positivo" })
     .max(365, { message: "Carência não pode ser maior que 365 dias" }),
-  status: z.enum(["ATIVO", "INATIVO"]).default("ATIVO"),
+  status: z.enum(["ATIVO", "INATIVO"]),
 });
 
 type PlanFormData = z.infer<typeof planFormSchema>;

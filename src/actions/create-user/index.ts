@@ -33,13 +33,7 @@ export const createUserAction = actionClient
       },
     });
 
-    if (result?.error) {
-      return {
-        error: result.error.message || "Erro ao criar usuário",
-      };
-    }
-
-    if (!result.data?.user) {
+    if (!result?.user) {
       const createdUser = await db
         .select()
         .from(usersTable)
@@ -80,14 +74,14 @@ export const createUserAction = actionClient
         isActive,
         updatedAt: new Date(),
       })
-      .where(eq(usersTable.id, result.data.user.id));
+      .where(eq(usersTable.id, result.user.id));
 
     return {
       success: true,
       user: {
-        id: result.data.user.id,
-        name: result.data.user.name || name,
-        email: result.data.user.email || email,
+        id: result.user.id,
+        name: result.user.name || name,
+        email: result.user.email || email,
         role,
         isActive,
       },

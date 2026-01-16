@@ -11,9 +11,7 @@ export const createUserSchema = z.object({
     .string()
     .min(8, { message: "Senha deve ter pelo menos 8 caracteres" })
     .trim(),
-  role: z.enum(["ADMIN", "CLINIC", "TUTOR"], {
-    required_error: "Papel é obrigatório",
-  }),
+  role: z.enum(["ADMIN", "CLINIC", "TUTOR"]),
   isActive: z.boolean().default(true),
 });
 

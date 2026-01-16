@@ -33,7 +33,7 @@ import { usePlans } from "@/hooks/queries/use-plans";
 const subscriptionFormSchema = z.object({
   petId: z.string().min(1, { message: "Pet é obrigatório" }),
   planId: z.string().min(1, { message: "Plano é obrigatório" }),
-  status: z.enum(["ATIVA", "CANCELADA", "SUSPENSA", "EXPIRADA"]).default("ATIVA"),
+  status: z.enum(["ATIVA", "CANCELADA", "SUSPENSA", "EXPIRADA"]),
   startDate: z.string().min(1, { message: "Data de início é obrigatória" }),
   endDate: z.string().optional(),
   nextBillingDate: z.string().optional(),
@@ -47,9 +47,9 @@ type Subscription = {
   petId: string;
   planId: string;
   status: "ATIVA" | "CANCELADA" | "SUSPENSA" | "EXPIRADA";
-  startDate: Date;
-  endDate?: Date | null;
-  nextBillingDate?: Date | null;
+  startDate: string;
+  endDate?: string | null;
+  nextBillingDate?: string | null;
   asaasSubscriptionId?: string | null;
 };
 

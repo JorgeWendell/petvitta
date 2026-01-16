@@ -61,19 +61,15 @@ export const updateSubscriptionAction = actionClient
         };
       }
 
-      const startDateValue = startDate ? new Date(startDate) : new Date();
-      const endDateValue = endDate ? new Date(endDate) : null;
-      const nextBillingDateValue = nextBillingDate ? new Date(nextBillingDate) : null;
-
       await db
         .update(subscriptionsTable)
         .set({
           petId,
           planId,
           status,
-          startDate: startDateValue,
-          endDate: endDateValue,
-          nextBillingDate: nextBillingDateValue,
+          startDate: startDate || new Date().toISOString().split('T')[0],
+          endDate: endDate || null,
+          nextBillingDate: nextBillingDate || null,
           asaasSubscriptionId: asaasSubscriptionId || null,
           updatedAt: new Date(),
         })

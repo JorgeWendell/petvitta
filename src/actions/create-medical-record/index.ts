@@ -88,25 +88,25 @@ export const createMedicalRecordAction = actionClient
       // Criar o prontuário médico
       const medicalRecordId = randomUUID();
 
-      await db.insert(medicalRecordsTable).values({
+      const medicalRecordValues = {
         id: medicalRecordId,
         petId,
         doctorId,
         chiefComplaint: anamnese.chiefComplaint || null,
         reportedSymptoms: anamnese.reportedSymptoms || null,
         medicationUse: anamnese.medicationUse || null,
-        temperature: anamnese.temperature
-          ? parseFloat(anamnese.temperature)
-          : null,
-        heartRate: anamnese.heartRate ? parseInt(anamnese.heartRate) : null,
+        temperature: anamnese.temperature || null,
+        heartRate: anamnese.heartRate ? parseInt(anamnese.heartRate, 10) : null,
         respiratoryRate: anamnese.respiratoryRate
-          ? parseInt(anamnese.respiratoryRate)
+          ? parseInt(anamnese.respiratoryRate, 10)
           : null,
         mucosa: anamnese.mucosa || null,
         hydration: anamnese.hydration || null,
         clinicalDiagnosis: clinicalDiagnosis || null,
         isReturn: isReturn || false,
-      });
+      };
+
+      await db.insert(medicalRecordsTable).values(medicalRecordValues);
 
       // Inserir prescrições
       if (prescriptions.length > 0) {

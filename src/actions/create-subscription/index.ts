@@ -59,18 +59,14 @@ export const createSubscriptionAction = actionClient
 
       const subscriptionId = randomUUID();
 
-      const startDateValue = startDate ? new Date(startDate) : new Date();
-      const endDateValue = endDate ? new Date(endDate) : null;
-      const nextBillingDateValue = nextBillingDate ? new Date(nextBillingDate) : null;
-
       await db.insert(subscriptionsTable).values({
         id: subscriptionId,
         petId,
         planId,
         status,
-        startDate: startDateValue,
-        endDate: endDateValue,
-        nextBillingDate: nextBillingDateValue,
+        startDate: startDate || new Date().toISOString().split('T')[0],
+        endDate: endDate || null,
+        nextBillingDate: nextBillingDate || null,
         asaasSubscriptionId: asaasSubscriptionId || null,
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -58,10 +58,10 @@ const vaccineSchema = z.object({
 const medicalRecordSchema = z.object({
   anamnese: anamneseSchema,
   clinicalDiagnosis: z.string().optional(),
-  isReturn: z.boolean().default(false),
-  prescriptions: z.array(prescriptionSchema).default([]),
-  exams: z.array(examSchema).default([]),
-  vaccines: z.array(vaccineSchema).default([]),
+  isReturn: z.boolean(),
+  prescriptions: z.array(prescriptionSchema),
+  exams: z.array(examSchema),
+  vaccines: z.array(vaccineSchema),
 });
 
 type MedicalRecordFormData = z.infer<typeof medicalRecordSchema>;

@@ -29,7 +29,7 @@ const vaccineSchema = z.object({
 });
 
 const vaccinesFormSchema = z.object({
-  vaccines: z.array(vaccineSchema).default([]),
+  vaccines: z.array(vaccineSchema),
 });
 
 type VaccinesFormData = z.infer<typeof vaccinesFormSchema>;

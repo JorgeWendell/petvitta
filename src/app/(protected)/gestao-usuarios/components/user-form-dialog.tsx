@@ -57,10 +57,8 @@ const userFormSchema = z.object({
     })
     .trim()
     .optional(),
-  role: z.enum(["ADMIN", "CLINIC", "TUTOR"], {
-    required_error: "Papel é obrigatório",
-  }),
-  isActive: z.boolean().default(true),
+  role: z.enum(["ADMIN", "CLINIC", "TUTOR"]),
+  isActive: z.boolean(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;

@@ -32,15 +32,13 @@ export const createPetAction = actionClient
       // Gerar código aleatório de 16 dígitos se não fornecido
       const codigoToInsert = codigo || Math.floor(1000000000000000 + Math.random() * 9000000000000000).toString();
 
-      const dateOfBirthValue = dateOfBirth ? new Date(dateOfBirth) : null;
-
       await db.insert(petsTable).values({
         id: petId,
         codigo: codigoToInsert,
         name,
         species,
         breed: breed || null,
-        dateOfBirth: dateOfBirthValue,
+        dateOfBirth: dateOfBirth || null,
         gender: gender || null,
         status,
         tutorId,

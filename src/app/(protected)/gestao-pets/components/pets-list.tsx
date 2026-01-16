@@ -39,7 +39,7 @@ type Pet = {
   name: string;
   species: "CÃO" | "GATO" | "PASSARO" | "COELHO" | "HAMSTER" | "OUTRO";
   breed?: string | null;
-  dateOfBirth?: Date | null;
+  dateOfBirth?: string | null;
   gender?: "MACHO" | "FÊMEA" | null;
   status: "ATIVO" | "SUSPENSO";
   tutorId: string;

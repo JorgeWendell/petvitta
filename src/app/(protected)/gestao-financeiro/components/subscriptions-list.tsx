@@ -31,9 +31,9 @@ type Subscription = {
   petId: string;
   planId: string;
   status: "ATIVA" | "CANCELADA" | "SUSPENSA" | "EXPIRADA";
-  startDate: Date;
-  endDate?: Date | null;
-  nextBillingDate?: Date | null;
+  startDate: string;
+  endDate?: string | null;
+  nextBillingDate?: string | null;
   asaasSubscriptionId?: string | null;
   createdAt: Date;
 };
@@ -128,7 +128,7 @@ export function SubscriptionsList() {
     return labels[status as keyof typeof labels] || status;
   };
 
-  const formatDate = (date: Date | null | undefined) => {
+  const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return "-";
     return new Date(date).toLocaleDateString("pt-BR");
   };

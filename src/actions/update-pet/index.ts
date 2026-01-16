@@ -37,8 +37,6 @@ export const updatePetAction = actionClient
       };
     }
 
-    const dateOfBirthValue = dateOfBirth ? new Date(dateOfBirth) : null;
-
     await db
       .update(petsTable)
       .set({
@@ -46,7 +44,7 @@ export const updatePetAction = actionClient
         name,
         species,
         breed: breed || null,
-        dateOfBirth: dateOfBirthValue,
+        dateOfBirth: dateOfBirth || null,
         gender: gender || null,
         status,
         tutorId,
