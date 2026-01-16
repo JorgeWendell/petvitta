@@ -126,7 +126,7 @@ export function ClinicDashboard({
                 }
               >
                 {stats.consultas.isPositive ? "+" : "-"}
-                {stats.consultas.porcentagem.toFixed(1)}%
+                {(stats.consultas.porcentagem ?? 0).toFixed(1)}%
               </span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
@@ -159,7 +159,7 @@ export function ClinicDashboard({
                 }
               >
                 {stats.agendamentos.isPositive ? "+" : "-"}
-                {stats.agendamentos.porcentagem.toFixed(1)}%
+                {(stats.agendamentos.porcentagem ?? 0).toFixed(1)}%
               </span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
@@ -195,7 +195,7 @@ export function ClinicDashboard({
                 }
               >
                 {stats.faturamento.isPositive ? "+" : "-"}
-                {stats.faturamento.porcentagem.toFixed(1)}%
+                {(stats.faturamento.porcentagem ?? 0).toFixed(1)}%
               </span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">
@@ -226,7 +226,7 @@ export function ClinicDashboard({
                 }
               >
                 {stats.vacinas.isPositive ? "+" : "-"}
-                {stats.vacinas.porcentagem.toFixed(1)}%
+                {(stats.vacinas.porcentagem ?? 0).toFixed(1)}%
               </span>
             </div>
             <p className="text-muted-foreground mt-1 text-xs">

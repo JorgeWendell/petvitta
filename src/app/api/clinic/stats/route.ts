@@ -263,10 +263,11 @@ export async function GET(request: NextRequest) {
     const faturamentoCount = Number(faturamento[0]?.total || 0);
     const faturamentoAnteriorCount = Number(faturamentoAnterior[0]?.total || 0);
     const vacinasCount =
-      (vacinasFromRecords[0]?.count || 0) + (vacinasFromPets[0]?.count || 0);
+      Number(vacinasFromRecords[0]?.count || 0) +
+      Number(vacinasFromPets[0]?.count || 0);
     const vacinasAnteriorCount =
-      (vacinasAnteriorFromRecords[0]?.count || 0) +
-      (vacinasAnteriorFromPets[0]?.count || 0);
+      Number(vacinasAnteriorFromRecords[0]?.count || 0) +
+      Number(vacinasAnteriorFromPets[0]?.count || 0);
 
     // Calcular faturamento histórico (últimos 3 meses para o gráfico)
     const threeMonthsAgo = new Date(year, month - 3, 1);

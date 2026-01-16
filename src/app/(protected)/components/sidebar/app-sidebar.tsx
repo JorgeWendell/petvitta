@@ -107,6 +107,16 @@ const clinicMenu = {
           title: "Consultas",
           url: "/consultas",
           icon: Stethoscope,
+          items: [
+            {
+              title: "Consultas de Hoje",
+              url: "/consultas",
+            },
+            {
+              title: "Histórico de Consultas",
+              url: "/historico-consultas",
+            },
+          ],
         },
         {
           title: "Agendamentos",
